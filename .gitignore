@@ -4,3 +4,5 @@
 !*.c
 !*.h
 !Makefile
+VIP_mod
+VIP_mcf
