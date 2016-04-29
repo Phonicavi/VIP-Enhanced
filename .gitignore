@@ -1,3 +1,6 @@
 *.txt
 *.topo
-
+!*.cpp
+!*.c
+!*.h
+!Makefile
