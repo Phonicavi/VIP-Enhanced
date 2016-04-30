@@ -475,7 +475,8 @@ void update_vt(int tid){
                 int a = neigh[n][m];
                 NodeArr[n].data_que[k].acc += v_a_n_k[a][n][k];
             }
-            NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.4*log(NodeArr[n].data_que[k].acc)+1);
+            double apl = 0.4;
+            NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:apl*log(NodeArr[n].data_que[k].acc)+1);
             NodeArr[n].data_que[k].acc = 0;
             NodeArr[n].data_que[k].acc_buffer = Positive(NodeArr[n].data_que[k].acc_buffer - r_n_k * NodeArr[n].data_que[k].s);
             // if (NodeArr[n].data_que[k].acc_buffer>=1) 
@@ -1066,7 +1067,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 1,delta = 2;
+    ratio_z = 0.2,delta = 2;
     W = 0.05;
 
     double QSI = 0;

@@ -1066,7 +1066,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 1,delta = 2;
+    ratio_z = 0.5,delta = 2;
     W = 0.05;
 
     double QSI = 0;
