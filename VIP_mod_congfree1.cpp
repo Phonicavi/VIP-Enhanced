@@ -86,9 +86,14 @@ double ratio_z = 1;
 double delta = 0;
 double Total_Utility = 0;
 double sum_a_n_k[NumOfNodes + 1][NumofObj + 1] = {0};
+
+double shrink[NumOfNodes+1][NumofObj+1]= {0};
+double noshrink_acc[NumOfNodes+1][NumofObj+1] = {0};
+
+
 int clients[Total_Time * NumOfNodes + 10] = {0};
 
-int signal_p = 0;
+atomic_int signal_p;
 atomic_int Trans_Remain;
 FILE* read_file;
 
@@ -244,7 +249,7 @@ void Initalize_Topology()
 {
      //Geant Topology
 
-    FILE *topo = fopen("Geant.topo","r");
+    FILE *topo = fopen("GEANT.topo","r");
     int a,b;
     while(~fscanf(topo,"%d %d",&a,&b)){
         addLink(a,b);
@@ -275,7 +280,7 @@ void Initalize_Topology()
 /*================== Auxiliary Functions ===========================*/
 inline double min_(double a,double b)
 {
-    return (a-b > 0.01 ? b:a);
+    return (a>b? b:a);
 }
 
 inline double max_(double a,double b){
@@ -310,14 +315,18 @@ inline double Bias_func(int node,int content)
 
     for(int k = 1; k <= neigh[node][0]; ++k){
         int next = neigh[node][k];
-        H = min_(H,NodeArr[next].data_que[content].acc);
+        // H = min_(H,noshrink_acc[next][content]);
+        H = min_(H,(NodeArr[next].data_que[content].acc) );
+        // H = min_(H,(NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1 );
+        // H = min_(H,noshrink_acc[next][content]);
     }
     return (H * ratio_z + delta * dis_src[node][Src[content]]);
 
     if(ratio_z != 0){
         for(int k = 1; k <= neigh[node][0]; ++k){
             int next = neigh[node][k];
-            sum += NodeArr[next].data_que[content].acc;
+            // sum += ((NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1);
+            sum += (NodeArr[next].data_que[content].acc);
         }
 
         sum /= neigh[node][0];
@@ -467,21 +476,29 @@ void update_vt(int tid){
             }
         // if (Cur_Time >100 &&  NodeArr[n].data_que[k].acc_buffer!=0)printf("%lf\n", NodeArr[n].data_que[k].acc_buffer);
             NodeArr[n].data_que[k].acc_buffer = Positive(NodeArr[n].data_que[k].acc_buffer);
-           
-
             NodeArr[n].data_que[k].acc_buffer += A_n_k[n][k];//NodeArr[n].alpha[k];
-            NodeArr[n].data_que[k].acc = 0;
+           //  double temp = 0;
+           //  for(int m = 1; m <= neigh[n][0]; ++m){ //a->n
+           //      int a = neigh[n][m];
+           //      temp += v_a_n_k[a][n][k];
+           //  }
+           // // NodeArr[n].data_que[k].acc_buffer += (temp <= 1 ? 1 : log(temp)+1);
+           // //if(temp)
+           // //cout << "# " << temp << endl;
+           //  NodeArr[n].data_que[k].acc_buffer += (temp <= 1 ? temp : 0.5*(temp - 1)+1);
+            // NodeArr[n].data_que[k].acc = 0;
+            shrink[n][k] = 0;
             for(int m = 1; m <= neigh[n][0]; ++m){ //a->n
                 int a = neigh[n][m];
-                NodeArr[n].data_que[k].acc += v_a_n_k[a][n][k];
+                shrink[n][k] += v_a_n_k[a][n][k];
             }
-            double apl = 0.4;
-            NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:apl*log(NodeArr[n].data_que[k].acc)+1);
-            NodeArr[n].data_que[k].acc = 0;
+            // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.4*log(NodeArr[n].data_que[k].acc)+1);
+            noshrink_acc[n][k] = NodeArr[n].data_que[k].acc_buffer;
+            NodeArr[n].data_que[k].acc_buffer += (shrink[n][k]<=1?shrink[n][k]:0.5*(shrink[n][k]-1)+1);
+            noshrink_acc[n][k] += shrink[n][k];
+            // NodeArr[n].data_que[k].acc = 0;
             NodeArr[n].data_que[k].acc_buffer = Positive(NodeArr[n].data_que[k].acc_buffer - r_n_k * NodeArr[n].data_que[k].s);
-            // if (NodeArr[n].data_que[k].acc_buffer>=1) 
-            //     NodeArr[n].data_que[k].acc_buffer = 0.8*(NodeArr[n].data_que[k].acc_buffer-1)+1;
-
+            noshrink_acc[n][k] = Positive(noshrink_acc[n][k]- r_n_k * NodeArr[n].data_que[k].s);
         }
     }
 }
@@ -545,23 +562,15 @@ void Update_v_a_n_k()
     TASK_ID = 1;
     // for (int i=1;i<=NumOfNodes;++i)
     //     for (int k=1; k<=NumofObj;++k)
-    // if (NodeArr[i].data_que[k].acc_buffer>=1) 
+    // if (NodeArr[i].data_que[k].acc_buffer>=1)
     //         NodeArr[i].data_que[k].acc_buffer = 0.99*(NodeArr[i].data_que[k].acc_buffer-1)+1;
     // for (int i=1;i<=NumOfNodes;++i)
     //     for (int j=1;j<=NumofObj;++j)
     //             NodeArr[i].CS[j] = NodeArr[i].CS[j]*1.1;
-    
 
-    #ifdef MULTITHREAD
-    for (int i=0;i<THREAD_NUM;++i){
-        thd[i] = thread(update_v_a_n_k,i);
-    }
-     for (int i=0;i<THREAD_NUM;++i){
-        thd[i].join();
-    }
-    #else
+
     update_v_a_n_k(0);
-    #endif
+    // #endif
 
 }
 
@@ -580,6 +589,8 @@ void virtual_forwarding(int tid){
 
             for(int k = 1; k <= NumofObj; ++k){
                 temp = (NodeArr[a].data_que[k].acc + Bias_func(a,k)) - (NodeArr[b].data_que[k].acc + Bias_func(b,k));
+                // temp = (noshrink_acc[a][k]+ Bias_func(a,k)) - (noshrink_acc[b][k]+ Bias_func(b,k));
+                // noshrink_acc[next][content]
                 if(temp > maximum){
                     data_index = k; //k*_a_b
                     maximum = temp;
@@ -901,16 +912,16 @@ void Actual_Request()
 {
 
     TASK_ID =1;
-    #ifdef MULTITHREAD
-    for (int i=0;i<THREAD_NUM;++i){
-        thd[i] = thread(actual_request,i);
-    }
-     for (int i=0;i<THREAD_NUM;++i){
-        thd[i].join();
-    }
-    #else
+    // #ifdef MULTITHREAD
+    // for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i] = thread(actual_request,i);
+    // }
+    //  for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i].join();
+    // }
+    // #else
     actual_request(0);
-    #endif
+    // #endif
     //cout << "Actual Forwarding Ok !" << endl;
 }
 /*========================== Request Process =======================*/
@@ -1059,6 +1070,7 @@ int main()
     hit = 0;
     has_finished = 0;
     Files = 0;
+    signal_p = 0;
 
 
 
@@ -1067,7 +1079,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0.2,delta = 2;
+    ratio_z = 0,delta = 0;
     W = 0.05;
 
     double QSI = 0;
@@ -1087,7 +1099,6 @@ int main()
             for(int k = 0; Total_Request[i][k]; ++k)
                 A_n_k[i][Total_Request[i][k]] += scale;
 
-       // Congestion_Control();
         Initial_State();
         Virtual_Forwarding();
 
@@ -1165,7 +1176,7 @@ int main()
 
     fout << "VIP QSI: " << QSI << endl;
     fout << "Total utility: " << Total_Utility << endl;
-    fout << "--------------VIP----------z: " << ratio_z << " W:"<< W << endl;
+    fout << "--------------VIP----------z: " << ratio_z << " B:"<< delta << " request: " << clients[1] << endl;
     fout << "hit : " << hit << endl;
     fout << "delay : " << delay << endl;
     fout << "has finished : " << has_finished << endl;
@@ -1175,7 +1186,7 @@ int main()
     fout << endl;
 
     double tmp;
-    
+
     for(int i = 1; i <= NumOfNodes; ++i){
         fout << "Node :" << i << endl;
         tmp = 0;
@@ -1188,7 +1199,7 @@ int main()
     }
 
     // for (int k=1;k<=NumofObj;++k){
-    //     fout << "OBJ " << k << ": "; 
+    //     fout << "OBJ " << k << ": ";
     //     for (int i=1; i<=NumOfNodes;++i){
     //         fout << NodeArr[i].CS[k] << ' ';
     //     }

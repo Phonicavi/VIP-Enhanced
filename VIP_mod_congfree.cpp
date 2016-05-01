@@ -88,7 +88,7 @@ double Total_Utility = 0;
 double sum_a_n_k[NumOfNodes + 1][NumofObj + 1] = {0};
 int clients[Total_Time * NumOfNodes + 10] = {0};
 
-int signal_p = 0;
+atomic_int signal_p;
 atomic_int Trans_Remain;
 FILE* read_file;
 
@@ -551,16 +551,16 @@ void Update_v_a_n_k()
     //             NodeArr[i].CS[j] = NodeArr[i].CS[j]*1.1;
     
 
-    #ifdef MULTITHREAD
-    for (int i=0;i<THREAD_NUM;++i){
-        thd[i] = thread(update_v_a_n_k,i);
-    }
-     for (int i=0;i<THREAD_NUM;++i){
-        thd[i].join();
-    }
-    #else
+    // #ifdef MULTITHREAD
+    // for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i] = thread(update_v_a_n_k,i);
+    // }
+    //  for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i].join();
+    // }
+    // #else
     update_v_a_n_k(0);
-    #endif
+    // #endif
 
 }
 
@@ -900,16 +900,16 @@ void Actual_Request()
 {
 
     TASK_ID =1;
-    #ifdef MULTITHREAD
-    for (int i=0;i<THREAD_NUM;++i){
-        thd[i] = thread(actual_request,i);
-    }
-     for (int i=0;i<THREAD_NUM;++i){
-        thd[i].join();
-    }
-    #else
+    // #ifdef MULTITHREAD
+    // for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i] = thread(actual_request,i);
+    // }
+    //  for (int i=0;i<THREAD_NUM;++i){
+    //     thd[i].join();
+    // }
+    // #else
     actual_request(0);
-    #endif
+    // #endif
     //cout << "Actual Forwarding Ok !" << endl;
 }
 /*========================== Request Process =======================*/
@@ -1058,6 +1058,7 @@ int main()
     hit = 0;
     has_finished = 0;
     Files = 0;
+    signal_p = 0;
 
 
 
@@ -1066,7 +1067,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0.5,delta = 2;
+    ratio_z = 1,delta = 2;
     W = 0.05;
 
     double QSI = 0;
