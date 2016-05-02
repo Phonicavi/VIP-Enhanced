@@ -514,7 +514,7 @@ void update_vt(int tid){
                 NodeArr[n].data_que[k].acc += v_a_n_k[a][n][k];
             }
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.4*log(NodeArr[n].data_que[k].acc)+1);
-            NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.5*(NodeArr[n].data_que[k].acc-1)+1);
+            NodeArr[n].data_que[k].acc_buffer += (0.5*NodeArr[n].data_que[k].acc);
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:1);
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.1*(NodeArr[n].data_que[k].acc-1)+1);
             NodeArr[n].data_que[k].acc = 0;
