@@ -50,6 +50,8 @@ thread thd[THREAD_NUM];
 atomic_int cnt1;
 atomic_int cnt2;
 
+#define READ_JUMP_NUM 20
+
 
 
 
@@ -298,9 +300,9 @@ inline void Read_File(int cur_node,int num)
 }
 
 
-inline double Bias_func(int node,int content)
+inline double Bias_func(int node,int content,int excl)
 {
-    if(ratio_z == 0) return delta * dis_src[node][Src[content]];
+    // if(ratio_z == 0) return delta * dis_src[node][Src[content]];
     /*double temp = Dijkstra(node,Src[content],content);
     if(temp)
         cout << "# " << temp << endl;
@@ -310,14 +312,20 @@ inline double Bias_func(int node,int content)
 
     for(int k = 1; k <= neigh[node][0]; ++k){
         int next = neigh[node][k];
-        H = min_(H,NodeArr[next].data_que[content].acc);
+        if (next == excl) continue;
+        // H = min_(H,noshrink_acc[next][content]);
+        H = min_(H,(NodeArr[next].data_que[content].acc) );
+        // H = min_(H,(NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1 );
+        // H = min_(H,noshrink_acc[next][content]);
     }
+    if (H == INF_MAX) H = 0;
     return (H * ratio_z + delta * dis_src[node][Src[content]]);
 
     if(ratio_z != 0){
         for(int k = 1; k <= neigh[node][0]; ++k){
             int next = neigh[node][k];
-            sum += NodeArr[next].data_que[content].acc;
+            // sum += ((NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1);
+            sum += (NodeArr[next].data_que[content].acc);
         }
 
         sum /= neigh[node][0];
@@ -578,7 +586,7 @@ void virtual_forwarding(int tid){
             data_index = -1, maximum = 0;
 
             for(int k = 1; k <= NumofObj; ++k){
-                temp = (NodeArr[a].data_que[k].acc + Bias_func(a,k)) - (NodeArr[b].data_que[k].acc + Bias_func(b,k));
+                temp = (NodeArr[a].data_que[k].acc + Bias_func(a,k,b)) - (NodeArr[b].data_que[k].acc + Bias_func(b,k,a));
                 if(temp > maximum){
                     data_index = k; //k*_a_b
                     maximum = temp;
