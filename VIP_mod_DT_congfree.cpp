@@ -302,7 +302,7 @@ inline void Read_File(int cur_node,int num)
 
 inline double Bias_func(int node,int content,int excl)
 {
-    // if(ratio_z == 0) return delta * dis_src[node][Src[content]];
+    if(ratio_z == 0) return delta * dis_src[node][Src[content]];
     /*double temp = Dijkstra(node,Src[content],content);
     if(temp)
         cout << "# " << temp << endl;

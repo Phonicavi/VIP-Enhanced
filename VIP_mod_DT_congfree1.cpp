@@ -41,6 +41,10 @@ const double r_n_k = CapOfLink;
 
 
 
+const double SHRINK_RATIO = 0.5;
+
+
+
 // MULTITHREAD
 #define MULTITHREAD
 
@@ -52,6 +56,8 @@ atomic_int cnt2;
 
 
 #define READ_JUMP_NUM 20
+
+
 
 
 
@@ -332,7 +338,7 @@ inline void Read_File(int cur_node,int num)
 
 inline double Bias_func(int node,int content,int excl)
 {
-    // if(ratio_z == 0) return delta * dis_src[node][Src[content]];
+    if(ratio_z == 0) return delta * dis_src[node][Src[content]];
     /*double temp = Dijkstra(node,Src[content],content);
     if(temp)
         cout << "# " << temp << endl;
@@ -514,7 +520,7 @@ void update_vt(int tid){
                 NodeArr[n].data_que[k].acc += v_a_n_k[a][n][k];
             }
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.4*log(NodeArr[n].data_que[k].acc)+1);
-            NodeArr[n].data_que[k].acc_buffer += (0.5*NodeArr[n].data_que[k].acc);
+            NodeArr[n].data_que[k].acc_buffer += (SHRINK_RATIO*NodeArr[n].data_que[k].acc);
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:1);
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.1*(NodeArr[n].data_que[k].acc-1)+1);
             NodeArr[n].data_que[k].acc = 0;
@@ -1193,6 +1199,7 @@ int main()
     cout << cnt1 << "  " << cnt2 << endl;
 
     cout << "--------------VIP----------Original-------" << endl;
+    cout << "SHRINK_RATIO : " << SHRINK_RATIO <<endl;
     cout << "z: " <<ratio_z << "  delta: " << delta << endl; 
     cout << "hit : " << hit << endl;
     cout << "delay : " << delay << endl;

@@ -40,6 +40,9 @@ const double Q_n_k_max = 200;
 const double r_n_k = CapOfLink;
 
 
+const double SHRINK_RATIO = 0.5;
+
+
 
 // MULTITHREAD
 #define MULTITHREAD
@@ -500,7 +503,7 @@ void update_vt(int tid){
             // NodeArr[n].data_que[k].acc_buffer += (NodeArr[n].data_que[k].acc<=1?NodeArr[n].data_que[k].acc:0.4*log(NodeArr[n].data_que[k].acc)+1);
             // noshrink_acc[n][k] = NodeArr[n].data_que[k].acc_buffer;
             // NodeArr[n].data_que[k].acc_buffer += (shrink[n][k]<=1?shrink[n][k]:0.5*(shrink[n][k]-1)+1);
-            NodeArr[n].data_que[k].acc_buffer += (0.5*shrink[n][k]);
+            NodeArr[n].data_que[k].acc_buffer += (SHRINK_RATIO*shrink[n][k]);
             // NodeArr[n].data_que[k].acc_buffer += (shrink[n][k]<=1?shrink[n][k]:1);
 
             // noshrink_acc[n][k] += shrink[n][k];
@@ -1087,7 +1090,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0.3,delta = 0;
+    ratio_z = 0,delta = 0;
     W = 0.05;
 
     double QSI = 0;
@@ -1171,6 +1174,7 @@ int main()
     cout << cnt1 << "  " << cnt2 << endl;
 
     cout << "--------------VIP----------Original-------" << endl;
+    cout << "SHRINK_RATIO : " << SHRINK_RATIO <<endl;
     cout << "z: " <<ratio_z << "  delta: " << delta << endl; 
     cout << "hit : " << hit << endl;
     cout << "delay : " << delay << endl;
