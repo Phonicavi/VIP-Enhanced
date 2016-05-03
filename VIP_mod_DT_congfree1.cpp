@@ -55,7 +55,7 @@ atomic_int cnt1;
 atomic_int cnt2;
 
 
-#define READ_JUMP_NUM 20
+#define READ_JUMP_NUM 0
 
 
 
@@ -576,7 +576,9 @@ void update_v_a_n_k(int tid){
                     // v_a_n_k[a][n][k] = (mu_a_b_k[a][n][k]/double(sum_a_k[a*(NumofObj + 1)+k])) * (NodeArr[i].data_que[k].acc_buffer==0.0?0.0:max(0.5*(NodeArr[i].data_que[k].acc_buffer-1)+1,0.0));
                 sum_v_a_n_k[a][n][k] += v_a_n_k[a][n][k];
                 // if (!(NodeArr[n].data_que[k].s && NodeArr[a].data_que[k].s))
-                    NodeArr[n].CS[k] = NodeArr[n].CS[k] + v_a_n_k[a][n][k];
+                    // NodeArr[n].CS[k] = NodeArr[n].CS[k] + v_a_n_k[a][n][k];
+                    NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.7);   
+                    // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k]);   
             }
         }
 
@@ -1114,7 +1116,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0.3,delta = 0;
+    ratio_z = 0,delta = 0;
     W = 0.05;
 
     double QSI = 0;
