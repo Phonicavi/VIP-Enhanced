@@ -538,7 +538,7 @@ void update_v_a_n_k(int tid){
                 sum_v_a_n_k[a][n][k] += v_a_n_k[a][n][k];
                 // if (!(NodeArr[n].data_que[k].s && NodeArr[a].data_que[k].s))
                     // NodeArr[n].CS[k] = NodeArr[n].CS[k] + v_a_n_k[a][n][k];
-                    NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.7);   
+                    NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k]);   
             }
         }
 
@@ -568,6 +568,9 @@ void Update_v_a_n_k()
     //     thd[i].join();
     // }
     // #else
+    for (int i=1;i<=NumOfNodes;++i)
+        for (int j=1;j<=NumofObj;++j)
+                NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
     update_v_a_n_k(0);
     // #endif
 
@@ -1076,7 +1079,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0,delta = 0;
+    ratio_z = 0,delta = 2;
     W = 0.05;
 
     double QSI = 0;

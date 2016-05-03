@@ -536,8 +536,9 @@ void update_v_a_n_k(int tid){
                     // v_a_n_k[a][n][k] = (mu_a_b_k[a][n][k]/double(sum_a_k[a*(NumofObj + 1)+k])) * (NodeArr[i].data_que[k].acc_buffer==0.0?0.0:max(0.5*(NodeArr[i].data_que[k].acc_buffer-1)+1,0.0));
                 sum_v_a_n_k[a][n][k] += v_a_n_k[a][n][k];
                 // if (!(NodeArr[n].data_que[k].s && NodeArr[a].data_que[k].s))
-                    // NodeArr[n].CS[k] = NodeArr[n].CS[k] + v_a_n_k[a][n][k];
-                    NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.5);   
+                    NodeArr[n].CS[k] =  NodeArr[n].CS[k] + (v_a_n_k[a][n][k]);
+                    // if (A_n_k[n][k] > 1)cout <<    v_a_n_k[a][n][k] <<" " << A_n_k[n][k]  <<endl;
+                    // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.5);   
             }
         }
 
@@ -554,9 +555,9 @@ void Update_v_a_n_k()
     //     for (int k=1; k<=NumofObj;++k)
     // if (NodeArr[i].data_que[k].acc_buffer>=1) 
     //         NodeArr[i].data_que[k].acc_buffer = 0.99*(NodeArr[i].data_que[k].acc_buffer-1)+1;
-    // for (int i=1;i<=NumOfNodes;++i)
-    //     for (int j=1;j<=NumofObj;++j)
-    //             NodeArr[i].CS[j] = NodeArr[i].CS[j]*1.1;
+    for (int i=1;i<=NumOfNodes;++i)
+        for (int j=1;j<=NumofObj;++j)
+                NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
     
 
     // #ifdef MULTITHREAD

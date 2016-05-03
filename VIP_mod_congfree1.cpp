@@ -284,7 +284,7 @@ void Initalize_Topology()
 /*================== Auxiliary Functions ===========================*/
 inline double min_(double a,double b)
 {
-    return (a>b? b:a);
+    return (a-b>0.01? b:a);
 }
 
 inline double max_(double a,double b){
@@ -564,7 +564,7 @@ void update_v_a_n_k(int tid){
                 sum_v_a_n_k[a][n][k] += v_a_n_k[a][n][k];
                 // if (!(NodeArr[n].data_que[k].s && NodeArr[a].data_que[k].s))
                     // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (NodeArr[n].data_que[k].s?NodeArr[n].CS[k]*1.0/Cur_Time:(v_a_n_k[a][n][k]));
-                NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k]);    
+                NodeArr[n].CS[k] = NodeArr[n].CS[k] + 0.5*(v_a_n_k[a][n][k]);    
                 // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.7);    
             }
         }
@@ -586,11 +586,26 @@ void Update_v_a_n_k()
 
     // if (Cur_Time % 1000 == 0 && Cur_Time > 0)
     // for (int i=1;i<=NumOfNodes;++i)
+    //     for (int ii=1;ii<NumOfNodes;++ii)
     //     for (int j=1;j<=NumofObj;++j)
-    //             NodeArr[i].CS[j] = pow(NodeArr[i].CS[j],0.8);
+    //             sum_v_a_n_k[i][ii][j] *= 0.8;
+
+
+     for (int i=1;i<=NumOfNodes;++i)
+        for (int j=1;j<=NumofObj;++j)
+                NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
+
 
 
     update_v_a_n_k(0);
+
+    for (int i=1;i<=NumOfNodes;++i)
+        for (int k=1;k<=NumofObj;++k){
+            for(int m = 1; m <= neigh[i][0]; ++m){
+                int n = neigh[i][m];
+                NodeArr[i].CS[k] = NodeArr[i].CS[k]-v_a_n_k[i][n][k];
+            }
+        }
     // #endif
 
 }
@@ -660,6 +675,27 @@ void Caching(int k,int node)
     else{
         int index_k_old = -1;
         double minimum = INF_MAX;
+
+
+        // for(int i = 1; i <= NumofObj; ++i){
+        //     if(NodeArr[node].data_que[i].s && Src[i] != node){
+        //         index_k_old = i;
+        //         minimum = NodeArr[node].CS[i];
+        //     }
+        // }
+        // if (index_k_old == -1) return;
+
+        // if(k<index_k_old){
+        //     if (NodeArr[node].CS[k] > minimum) cnt1++;else cnt2++;
+        //     NodeArr[node].data_que[k].s = 1;
+        //     NodeArr[node].data_que[index_k_old].s = 0;
+        // }
+
+
+
+
+
+
 
         // if score higher, then evicted....
         for(int i = 1; i <= NumofObj; ++i){
@@ -1209,16 +1245,16 @@ int main()
 
     double tmp;
 
-    for(int i = 1; i <= NumOfNodes; ++i){
-        fout << "Node :" << i << endl;
-        tmp = 0;
-        for(int k = 1; k <= NumofObj; ++k){
-            fout << NodeArr[i].data_que[k].acc<< ' ';
-            tmp += NodeArr[i].data_que[k].acc;
-        }
-        fout << endl;
-        fout << "Aver:" << tmp/NumofObj <<endl;
-    }
+    // for(int i = 1; i <= NumOfNodes; ++i){
+    //     fout << "Node :" << i << endl;
+    //     tmp = 0;
+    //     for(int k = 1; k <= NumofObj; ++k){
+    //         fout << NodeArr[i].data_que[k].acc<< ' ';
+    //         tmp += NodeArr[i].data_que[k].acc;
+    //     }
+    //     fout << endl;
+    //     fout << "Aver:" << tmp/NumofObj <<endl;
+    // }
 
     // for (int k=1;k<=NumofObj;++k){
     //     fout << "OBJ " << k << ": ";
@@ -1227,6 +1263,14 @@ int main()
     //     }
     //     fout<<endl;
     // }
+
+    for (int i=1;i<=NumOfNodes;++i){
+        fout << "Node " << i << ": ";
+        for (int k=1;k<=NumofObj;++k){
+            if (NodeArr[i].data_que[k].s) fout << k << " ";
+        }
+        fout << endl;
+    }
 
     return 0;
 }
