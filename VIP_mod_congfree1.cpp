@@ -321,7 +321,7 @@ inline double Bias_func(int node,int content,int excl)
 
     for(int k = 1; k <= neigh[node][0]; ++k){
         int next = neigh[node][k];
-        if (next == excl) continue;
+        // if (next == excl) continue;
         // H = min_(H,noshrink_acc[next][content]);
         H = min_(H,(NodeArr[next].data_que[content].acc) );
         // H = min_(H,(NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1 );
@@ -484,7 +484,7 @@ void update_vt(int tid){
             }
         // if (Cur_Time >100 &&  NodeArr[n].data_que[k].acc_buffer!=0)printf("%lf\n", NodeArr[n].data_que[k].acc_buffer);
             NodeArr[n].data_que[k].acc_buffer = Positive(NodeArr[n].data_que[k].acc_buffer);
-            NodeArr[n].data_que[k].acc_buffer += A_n_k[n][k];//NodeArr[n].alpha[k];
+            // NodeArr[n].data_que[k].acc_buffer += A_n_k[n][k];//NodeArr[n].alpha[k];
            //  double temp = 0;
            //  for(int m = 1; m <= neigh[n][0]; ++m){ //a->n
            //      int a = neigh[n][m];
@@ -496,6 +496,7 @@ void update_vt(int tid){
            //  NodeArr[n].data_que[k].acc_buffer += (temp <= 1 ? temp : 0.5*(temp - 1)+1);
             // NodeArr[n].data_que[k].acc = 0;
             shrink[n][k] = 0;
+            shrink[n][k] += A_n_k[n][k];
             for(int m = 1; m <= neigh[n][0]; ++m){ //a->n
                 int a = neigh[n][m];
                 shrink[n][k] += v_a_n_k[a][n][k];
@@ -564,7 +565,7 @@ void update_v_a_n_k(int tid){
                 sum_v_a_n_k[a][n][k] += v_a_n_k[a][n][k];
                 // if (!(NodeArr[n].data_que[k].s && NodeArr[a].data_que[k].s))
                     // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (NodeArr[n].data_que[k].s?NodeArr[n].CS[k]*1.0/Cur_Time:(v_a_n_k[a][n][k]));
-                NodeArr[n].CS[k] = NodeArr[n].CS[k] + 0.5*(v_a_n_k[a][n][k]);    
+                NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k]);    
                 // NodeArr[n].CS[k] = NodeArr[n].CS[k] + (v_a_n_k[a][n][k])*pow(1.0/k,0.7);    
             }
         }
@@ -591,21 +592,21 @@ void Update_v_a_n_k()
     //             sum_v_a_n_k[i][ii][j] *= 0.8;
 
 
-     for (int i=1;i<=NumOfNodes;++i)
-        for (int j=1;j<=NumofObj;++j)
-                NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
+     // for (int i=1;i<=NumOfNodes;++i)
+     //    for (int j=1;j<=NumofObj;++j)
+     //            NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
 
 
 
     update_v_a_n_k(0);
 
-    for (int i=1;i<=NumOfNodes;++i)
-        for (int k=1;k<=NumofObj;++k){
-            for(int m = 1; m <= neigh[i][0]; ++m){
-                int n = neigh[i][m];
-                NodeArr[i].CS[k] = NodeArr[i].CS[k]-v_a_n_k[i][n][k];
-            }
-        }
+    // for (int i=1;i<=NumOfNodes;++i)
+    //     for (int k=1;k<=NumofObj;++k){
+    //         for(int m = 1; m <= neigh[i][0]; ++m){
+    //             int n = neigh[i][m];
+    //             NodeArr[i].CS[k] = NodeArr[i].CS[k]-v_a_n_k[i][n][k];
+    //         }
+    //     }
     // #endif
 
 }
@@ -624,7 +625,7 @@ void virtual_forwarding(int tid){
             data_index = -1, maximum = 0;
 
             for(int k = 1; k <= NumofObj; ++k){
-                temp = (NodeArr[a].data_que[k].acc + Bias_func(a,k,b)) - (NodeArr[b].data_que[k].acc + Bias_func(b,k,a));
+                temp = (NodeArr[a].data_que[k].acc + Bias_func(a,k,b)) - SHRINK_RATIO*(NodeArr[b].data_que[k].acc + Bias_func(b,k,a));
                 // temp = (noshrink_acc[a][k]+ Bias_func(a,k)) - (noshrink_acc[b][k]+ Bias_func(b,k));
                 // noshrink_acc[next][content]
                 if(temp > maximum){
@@ -1136,7 +1137,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0.3,delta = 0;
+    ratio_z = 0,delta = 0;
     W = 0.05;
 
     double QSI = 0;

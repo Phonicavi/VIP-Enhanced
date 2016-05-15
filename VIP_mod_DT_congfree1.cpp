@@ -348,7 +348,7 @@ inline double Bias_func(int node,int content,int excl)
 
     for(int k = 1; k <= neigh[node][0]; ++k){
         int next = neigh[node][k];
-        if (next == excl) continue;
+        // if (next == excl) continue;
         // H = min_(H,noshrink_acc[next][content]);
         H = min_(H,(NodeArr[next].data_que[content].acc) );
         // H = min_(H,(NodeArr[next].data_que[content].acc<=1)?NodeArr[next].data_que[content].acc:0.5*(NodeArr[next].data_que[content].acc-1)+1 );
@@ -609,9 +609,9 @@ void Update_v_a_n_k()
     // }
     // #else
 
-    for (int i=1;i<=NumOfNodes;++i)
-        for (int j=1;j<=NumofObj;++j)
-                NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
+    // for (int i=1;i<=NumOfNodes;++i)
+    //     for (int j=1;j<=NumofObj;++j)
+    //             NodeArr[i].CS[j] = NodeArr[i].CS[j]+A_n_k[i][j];
     update_v_a_n_k(0);
     // #endif
 
@@ -1120,7 +1120,7 @@ int main()
     for(int i = 1; i <= Total_Time * NumOfNodes + 5;++i)
         clients[i] = 60;
 
-    ratio_z = 0,delta = 2;
+    ratio_z = 0.3,delta = 0;
     W = 0.05;
 
     double QSI = 0;
